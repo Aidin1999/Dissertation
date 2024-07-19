@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Retrieve Data and Download as CSV</title>
-  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.102.0.min.js"></script>
+  <script src="***********"></script> <!-- Replace with the actual URL of the AWS SDK -->
 </head>
 <body>
   <h1>Retrieve Data and Download as CSV</h1>
@@ -27,16 +27,17 @@
   <button id="downloadBtn" style="display: none;" onclick="downloadCSV()">Download as CSV</button>
 
   <script>
+    // Load the AWS SDK
     const AWS = window.AWS;
     let retrievedData = null; // Variable to store retrieved data
 
     // Configure AWS Cognito for authentication
-    AWS.config.region = 'eu-west-2'; 
+    AWS.config.region = '*********'; // Replace with your AWS region
     AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-      IdentityPoolId: 'eu-west-2:ea845cfc-24d5-4d8e-ac44-d50a9aeee1f9' 
+      IdentityPoolId: '************' // Replace with your Identity Pool ID
     });
 
-    const apiGatewayEndpoint = 'https://tydw4bq1qf.execute-api.eu-west-2.amazonaws.com/request'; 
+    const apiGatewayEndpoint = '***********'; // Replace with your API Gateway endpoint
 
     // Function to send a query to the API Gateway
     async function sendQuery() {
@@ -81,9 +82,9 @@
 
         try {
           const params = {
-            TableName: 'usersq', 
+            TableName: 'usersq', // Replace with your DynamoDB table name
             Key: {
-              'ID': { S: itemId } 
+              'ID': { S: itemId } // Replace 'ID' with your partition key attribute
             }
           };
 
