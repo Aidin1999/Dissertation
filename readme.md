@@ -14,13 +14,13 @@ This repository contains the infrastructure for a Data Engineering Lifecycle on 
 ### Prerequisites
 
 - AWS CLI configured with appropriate permissions.
-- Python 3.12 installed.
+- Python 3.12 or later installed.
 
 ### Steps to Package and Deploy the Lambda Function
 
 1. **Create a Directory for Lambda Function Code**
 
-    Create a directory to hold the Lambda function code and its dependencies.
+    Create a directory to hold the Lambda function code and its dependencies:
 
     ```bash
     mkdir lambda_function_package
@@ -29,15 +29,15 @@ This repository contains the infrastructure for a Data Engineering Lifecycle on 
 
 2. **Add Your Lambda Function Code**
 
-    Copy your `lambda_function.py` into the directory.
+    Copy your `lambda_function.py` into the directory:
 
     ```bash
     cp /path/to/your/lambda_function.py .
     ```
 
-3. **Install Dependencies**
+3. **Install Dependencies Locally**
 
-    Install the `redshift_connector` and `requests` libraries into the current directory.
+    Install the `redshift_connector` and `requests` libraries into the current directory:
 
     ```bash
     pip install redshift_connector -t .
@@ -46,15 +46,32 @@ This repository contains the infrastructure for a Data Engineering Lifecycle on 
 
 4. **Create a Deployment Package**
 
-    Zip the contents of the directory to create a deployment package.
+    Zip the contents of the directory to create a deployment package:
 
     ```bash
     zip -r ../lambda_function.zip .
     ```
 
+    **Note:** You can alternatively install dependencies directly on your local machine and create a zip package that includes both your Lambda function and the installed dependencies:
+
+    - **Install Dependencies Locally:** 
+      
+      If you prefer, you can install the dependencies on your local machine and then manually create the zip file:
+
+      ```bash
+      pip install redshift_connector requests -t .
+      zip -r lambda_function.zip lambda_function.py
+      ```
+
+    - **Upload to Lambda:** 
+
+      Follow the deployment instructions below using the created `lambda_function.zip` file.
+
 5. **Deploy the Lambda Function**
 
     Use the AWS CLI to create or update your Lambda function with the deployment package.
+
+    To create a new Lambda function:
 
     ```bash
     aws lambda create-function --function-name YourLambdaFunctionName \
@@ -62,7 +79,7 @@ This repository contains the infrastructure for a Data Engineering Lifecycle on 
     --runtime python3.x --role arn:aws:iam::your-account-id:role/your-lambda-execution-role
     ```
 
-    If you are updating an existing Lambda function, use the following command:
+    To update an existing Lambda function:
 
     ```bash
     aws lambda update-function-code --function-name YourLambdaFunctionName \
@@ -75,15 +92,25 @@ This repository contains the infrastructure for a Data Engineering Lifecycle on 
 
 This repository includes an `index.xml` file for configuring AWS Amplify. The `index.xml` file is included in the `index.zip`.
 
-To deploy the `index.xml` file to AWS Amplify, follow the standard process for setting up a new Amplify project or updating an existing one.
+To deploy the `index.xml` file to AWS Amplify, follow these steps:
+
+1. **Upload the Configuration File**
+
+    - Navigate to the AWS Amplify console.
+    - Either create a new Amplify project or select an existing one.
+    - Upload the `index.zip` file containing the `index.xml` to the Amplify project.
+
+2. **Configure Amplify**
+
+    Follow the standard process for setting up or updating an Amplify project based on the uploaded configuration file.
 
 ## Testing
 
 ### test.py
 
-The `test.py` script is included to test the functionality of the Lambda function. Ensure you have the necessary AWS credentials and environment variables set up before running the tests.
+The `test.py` script is provided to test the functionality of the Lambda function. Ensure you have the necessary AWS credentials and environment variables set up before running the tests.
 
-Run the test script:
+Run the test script with:
 
 ```bash
 python test.py
