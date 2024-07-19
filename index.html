@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retrieve Data and Download as CSV</title>
+  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.102.0.min.js"></script>
+</head>
+<body>
+  <h1>Retrieve Data and Download as CSV</h1>
+  
+  <!-- Section to send a SQL query -->
+  <h2>Send Query</h2>
+  <input type="text" id="query" placeholder="Enter SQL query">
+  <button onclick="sendQuery()">Send Query</button>
+  <p id="assignedId"></p>
+  <p id="queryError" style="color: red;"></p>
+
+  <!-- Section to retrieve data by item ID -->
+  <h2>Retrieve Data by ID</h2>
+  <input type="text" id="itemId" placeholder="Enter Item ID">
+  <button onclick="getData()">Get Data</button>
+  
+  <!-- Section to display item details and download button -->
+  <h2>Item Details:</h2>
+  <div id="itemDetails"></div>
+  <button id="downloadBtn" style="display: none;" onclick="downloadCSV()">Download as CSV</button>
+
+  <script>
+    const AWS = window.AWS;
+    let retrievedData = null; // Variable to store retrieved data
+
+    // Configure AWS Cognito for authentication
+    AWS.config.region = 'eu-west-2'; 
+    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+      IdentityPoolId: 'eu-west-2:ea845cfc-24d5-4d8e-ac44-d50a9aeee1f9' 
+    });
+
+    const apiGatewayEndpoint = 'https://tydw4bq1qf.execute-api.eu-west-2.amazonaws.com/request'; 
+
+    // Function to send a query to the API Gateway
+    async function sendQuery() {
+      const query = document.getElementById('query').value;
+      const id = Math.floor(Math.random() * 1000000); // Generate a random ID
+      const messageBody = `${id}|${query}`;
+      const queryError = document.getElementById('queryError');
+
+      try {
+        const response = await fetch(apiGatewayEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: messageBody })
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to send message to API Gateway: ${errorText}`);
+        }
+
+        document.getElementById('assignedId').innerText = `Assigned ID: ${id}`;
+        queryError.innerText = '';
+      } catch (error) {
+        console.error('Error sending message to API Gateway:', error);
+        queryError.innerText = 'Error sending message: ' + error.message;
+      }
+    }
+
+    // Function to retrieve data from DynamoDB
+    async function getData() {
+      const itemId = document.getElementById('itemId').value;
+
+      // Refresh credentials for unauthenticated access
+      AWS.config.credentials.get(async (err) => {
+        if (err) {
+          console.error('Error retrieving credentials:', err);
+          document.getElementById('itemDetails').innerText = 'Failed to get AWS credentials.';
+          return;
+        }
+
+        const dynamoDB = new AWS.DynamoDB();
+
+        try {
+          const params = {
+            TableName: 'usersq', 
+            Key: {
+              'ID': { S: itemId } 
+            }
+          };
+
+          const response = await dynamoDB.getItem(params).promise();
+          if (!response.Item) {
+            document.getElementById('itemDetails').innerText = 'Item not found.';
+            return;
+          }
+
+          const data = AWS.DynamoDB.Converter.unmarshall(response.Item);
+          retrievedData = JSON.parse(data.Result); // Store data in the variable
+          displayData(retrievedData);
+          document.getElementById('downloadBtn').style.display = 'block';
+        } catch (error) {
+          console.error('Error:', error);
+          document.getElementById('itemDetails').innerText = error.message;
+        }
+      });
+    }
+
+    // Function to display the retrieved data in a table
+    function displayData(data) {
+      const itemDetailsDiv = document.getElementById('itemDetails');
+      itemDetailsDiv.innerHTML = ''; // Clear previous content
+
+      if (data.length === 0) {
+        itemDetailsDiv.innerText = 'No data found.';
+        return;
+      }
+
+      // Create table
+      const table = document.createElement('table');
+      table.border = 1;
+      const thead = document.createElement('thead');
+      const tbody = document.createElement('tbody');
+
+      // Create table headers
+      const headers = Object.keys(data[0]);
+      const headerRow = document.createElement('tr');
+      headers.forEach(header => {
+        const th = document.createElement('th');
+        th.innerText = header;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+
+      // Create table rows
+      data.forEach(record => {
+        const row = document.createElement('tr');
+        headers.forEach(header => {
+          const cell = document.createElement('td');
+          cell.innerText = record[header] !== null ? record[header] : '';
+          row.appendChild(cell);
+        });
+        tbody.appendChild(row);
+      });
+
+      table.appendChild(thead);
+      table.appendChild(tbody);
+      itemDetailsDiv.appendChild(table);
+    }
+
+    // Function to download the retrieved data as a CSV file
+    function downloadCSV() {
+      if (!retrievedData) {
+        document.getElementById('itemDetails').innerText = 'No data found to download.';
+        return;
+      }
+
+      // Generate CSV headers from the first object in the results array
+      const headers = Object.keys(retrievedData[0]).join(',');
+      let csvContent = `data:text/csv;charset=utf-8,${headers}\n`;
+
+      // Generate CSV rows
+      retrievedData.forEach(record => {
+        const row = Object.values(record).map(value => value !== null ? `"${value}"` : '').join(',');
+        csvContent += `${row}\n`;
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const a = document.createElement('a');
+      a.href = encodedUri;
+      a.download = 'item_details.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  </script>
+</body>
+</html>
