@@ -8,6 +8,10 @@ This repository contains the infrastructure for a Data Engineering Lifecycle on 
 - **lambda_function.zip**: Contains the Lambda function code along with its dependencies.
 - **lambda_function.py**: The Python script for the Lambda function.
 - **test.py**: A script to test the functionality of the Lambda function.
+- **data**: Directory containing raw data and database files.
+  - **soccer.sqlite**: SQLite database file downloaded from [Kaggle Soccer Dataset](https://www.kaggle.com/datasets/hugomathien/soccer).
+  - **sql_script.sql**: SQL script for building a database from the SQLite file.
+  - **mwd.sql**: MySQL Workbench file with proposed SQL schema.
 
 ## Setting Up the Lambda Function
 
@@ -55,7 +59,7 @@ This repository contains the infrastructure for a Data Engineering Lifecycle on 
     **Note:** You can alternatively install dependencies directly on your local machine and create a zip package that includes both your Lambda function and the installed dependencies:
 
     - **Install Dependencies Locally:** 
-      
+
       If you prefer, you can install the dependencies on your local machine and then manually create the zip file:
 
       ```bash
@@ -103,6 +107,20 @@ To deploy the `index.xml` file to AWS Amplify, follow these steps:
 2. **Configure Amplify**
 
     Follow the standard process for setting up or updating an Amplify project based on the uploaded configuration file.
+
+## sql_script.sql
+
+An SQL script for building a database schema from the SQLite file. This script is used to transform the raw data into a structured database.
+
+## mwd.sql
+
+MySQL Workbench file containing the proposed SQL schema. This file outlines the structure and relationships of the database tables as envisioned for the project.
+
+## Data.zip Files
+
+### soccer.sqlite and .csv files
+
+This SQLite file is downloaded from [Kaggle Soccer Dataset](https://www.kaggle.com/datasets/hugomathien/soccer). It contains raw soccer data intended for non-commercial use.
 
 ## Testing
 
